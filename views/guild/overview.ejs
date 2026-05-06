@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= guild.name %> — Overview</title>
+  <link rel="icon" href="/img/chell-logo.png">
+  <link rel="stylesheet" href="/css/main.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<%- include('../partials/navbar') %>
+<div class="layout">
+  <%- include('../partials/sidebar', { guild, guildId: guild.id, activePage: 'overview' }) %>
+  <main class="main-content with-sidebar">
+
+    <div class="breadcrumb">
+      <a href="/dashboard">Mes serveurs</a>
+      <span class="sep">›</span>
+      <span class="current"><%= guild.name %></span>
+    </div>
+
+    <div class="page-header">
+      <h1>
+        <% if (guild.icon) { %>
+          <img src="https://cdn.discordapp.com/icons/<%= guild.id %>/<%= guild.icon %>.webp?size=64" style="width:36px;height:36px;border-radius:10px;border:2px solid var(--accent-purple)">
+        <% } %>
+        <%= guild.name %>
+      </h1>
+      <p>Vue d'ensemble — configuration et statistiques du serveur</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card purple">
+        <div class="stat-icon purple"><i class="fa-solid fa-users"></i></div>
+        <div><div class="stat-value"><%= (guild.approximate_member_count || guild.member_count || '—').toLocaleString?.() || (guild.approximate_member_count || guild.member_count || '—') %></div><div class="stat-label">Membres</div></div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div><div class="stat-value"><%= warnCount %></div><div class="stat-label">Avertissements</div></div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-icon blue"><i class="fa-solid fa-hashtag"></i></div>
+        <div><div class="stat-value"><%= textChannels.length %></div><div class="stat-label">Salons texte</div></div>
+      </div>
+      <div class="stat-card gold">
+        <div class="stat-icon gold"><i class="fa-solid fa-tag"></i></div>
+        <div><div class="stat-value"><%= roles.length %></div><div class="stat-label">Rôles</div></div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon green"><i class="fa-solid fa-brain"></i></div>
+        <div>
+          <div class="stat-value">
+            <% const aiOn = config?.ai_system?.enabled !== false; %>
+            <span class="badge <%= aiOn ? 'badge-green' : 'badge-red' %>">
+              <%= aiOn ? '✅ Active' : '❌ Off' %>
+            </span>
+          </div>
+          <div class="stat-label">IA conversationnelle</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modules actifs -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i class="fa-solid fa-puzzle-piece"></i> Modules actifs</div>
+        </div>
+        <div>
+          <% const modules = [
+            { key: 'welcome',   icon: 'fa-door-open',    label: 'Message d\'accueil', check: config?.welcome?.enabled },
+            { key: 'automod',   icon: 'fa-robot',        label: 'Auto-Modération',    check: config?.automod?.enabled },
+            { key: 'antiraid',  icon: 'fa-shield-virus', label: 'Anti-Raid',          check: config?.antiraid?.enabled },
+            { key: 'logs',      icon: 'fa-scroll',       label: 'Logs',               check: config?.logs?.enabled },
+            { key: 'tickets',   icon: 'fa-ticket',       label: 'Tickets',            check: config?.tickets?.enabled },
+            { key: 'xp',        icon: 'fa-star',         label: 'Système XP',         check: config?.xp?.enabled },
+            { key: 'social',    icon: 'fa-rss',          label: 'Réseaux Sociaux',    check: config?.social?.enabled || config?.socialFeeds?.length > 0 },
+          ]; %>
+          <% modules.forEach(m => { %>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label"><i class="fa-solid <%= m.icon %>" style="width:16px;color:var(--accent-purple-l)"></i> <%= m.label %></div>
+            </div>
+            <span class="badge <%= m.check ? 'badge-green' : 'badge-red' %>">
+              <%= m.check ? 'Activé' : 'Désactivé' %>
+            </span>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i class="fa-solid fa-bolt"></i> Accès rapide</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <a href="/guild/<%= guild.id %>/ai"         class="btn btn-secondary w-full"><i class="fa-solid fa-brain"></i> Configurer l'IA</a>
+          <a href="/guild/<%= guild.id %>/moderation" class="btn btn-secondary w-full"><i class="fa-solid fa-shield-halved"></i> Voir les avertissements</a>
+          <a href="/guild/<%= guild.id %>/automod"    class="btn btn-secondary w-full"><i class="fa-solid fa-robot"></i> AutoMod</a>
+          <a href="/guild/<%= guild.id %>/welcome"    class="btn btn-secondary w-full"><i class="fa-solid fa-door-open"></i> Message d'accueil</a>
+          <a href="/guild/<%= guild.id %>/logs"       class="btn btn-secondary w-full"><i class="fa-solid fa-scroll"></i> Configuration des logs</a>
+          <a href="/guild/<%= guild.id %>/xp"         class="btn btn-secondary w-full"><i class="fa-solid fa-star"></i> Classement XP</a>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+<div id="toast"></div>
+<script src="/js/main.js"></script>
+</body>
+</html>

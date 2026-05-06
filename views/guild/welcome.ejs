@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accueil — <%= guild.name %></title>
+  <link rel="icon" href="/img/chell-logo.png">
+  <link rel="stylesheet" href="/css/main.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<%- include('../partials/navbar') %>
+<div class="layout">
+  <%- include('../partials/sidebar', { guild, guildId: guild.id, activePage: 'welcome' }) %>
+  <main class="main-content with-sidebar">
+    <div class="breadcrumb"><a href="/dashboard">Mes serveurs</a><span class="sep">›</span><a href="/guild/<%= guild.id %>"><%= guild.name %></a><span class="sep">›</span><span class="current">Accueil</span></div>
+    <div class="page-header"><h1><i class="fa-solid fa-door-open"></i> Message d'accueil</h1><p>Configurez le message de bienvenue pour les nouveaux membres</p></div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title"><i class="fa-solid fa-paper-plane"></i> Configuration</div></div>
+      <form data-api-form="/api/guild/<%= guild.id %>/welcome">
+        <div class="toggle-row">
+          <div><div class="toggle-label">Message d'accueil activé</div><div class="toggle-sub">Envoyer un message quand un membre rejoint</div></div>
+          <label class="toggle"><input type="checkbox" name="enabled" <%= config?.welcome?.enabled ? 'checked' : '' %>><span class="toggle-slider"></span></label>
+        </div>
+        <div class="divider"></div>
+        <div class="form-group">
+          <label class="form-label">Salon de bienvenue</label>
+          <select name="channelId" class="form-select">
+            <option value="">— Sélectionner un salon —</option>
+            <% textChannels.forEach(ch => { %>
+              <option value="<%= ch.id %>" <%= config?.welcome?.channelId === ch.id ? 'selected' : '' %>><%= ch.name %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Message de bienvenue</label>
+          <textarea name="message" class="form-textarea" rows="4" placeholder="Bienvenue {user} sur {server} ! 🎉"><%= config?.welcome?.message || '' %></textarea>
+          <div class="form-hint">Variables : {user}, {server}, {memberCount}</div>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Image de bienvenue</div></div>
+          <label class="toggle"><input type="checkbox" name="imageEnabled" <%= config?.welcome?.imageEnabled ? 'checked' : '' %>><span class="toggle-slider"></span></label>
+        </div>
+        <button type="submit" class="btn btn-primary w-full mt-16"><i class="fa-solid fa-floppy-disk"></i> Sauvegarder</button>
+      </form>
+    </div>
+  </main>
+</div>
+<div id="toast"></div>
+<script src="/js/main.js"></script>
+</body>
+</html>

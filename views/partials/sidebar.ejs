@@ -1,0 +1,62 @@
+<aside class="sidebar">
+  <div class="sidebar-guild">
+    <% if (guild.icon) { %>
+      <img src="https://cdn.discordapp.com/icons/<%= guild.id %>/<%= guild.icon %>.webp?size=64" alt="<%= guild.name %>" class="sidebar-guild-icon">
+    <% } else { %>
+      <div class="sidebar-guild-icon-placeholder"><%= guild.name.charAt(0) %></div>
+    <% } %>
+    <div class="sidebar-guild-info">
+      <div class="sidebar-guild-name"><%= guild.name %></div>
+      <div class="sidebar-guild-id">#<%= guild.id.slice(-4) %></div>
+    </div>
+  </div>
+
+  <div class="sidebar-section-label">Vue d'ensemble</div>
+  <a href="/guild/<%= guildId %>" class="sidebar-link <%= activePage === 'overview' ? 'active' : '' %>">
+    <i class="fa-solid fa-house"></i> Aperçu
+  </a>
+
+  <div class="sidebar-section-label">Intelligence Artificielle</div>
+  <a href="/guild/<%= guildId %>/ai" class="sidebar-link <%= activePage === 'ai' ? 'active' : '' %>">
+    <i class="fa-solid fa-brain"></i> Configuration IA
+  </a>
+
+  <div class="sidebar-section-label">Modération</div>
+  <a href="/guild/<%= guildId %>/moderation" class="sidebar-link <%= activePage === 'moderation' ? 'active' : '' %>">
+    <i class="fa-solid fa-shield-halved"></i> Avertissements
+  </a>
+  <a href="/guild/<%= guildId %>/automod" class="sidebar-link <%= activePage === 'automod' ? 'active' : '' %>">
+    <i class="fa-solid fa-robot"></i> AutoMod
+  </a>
+  <a href="/guild/<%= guildId %>/antiraid" class="sidebar-link <%= activePage === 'antiraid' ? 'active' : '' %>">
+    <i class="fa-solid fa-shield-virus"></i> Anti-Raid
+  </a>
+
+  <div class="sidebar-section-label">Membres</div>
+  <a href="/guild/<%= guildId %>/welcome" class="sidebar-link <%= activePage === 'welcome' ? 'active' : '' %>">
+    <i class="fa-solid fa-door-open"></i> Accueil
+  </a>
+  <a href="/guild/<%= guildId %>/autoroles" class="sidebar-link <%= activePage === 'autoroles' ? 'active' : '' %>">
+    <i class="fa-solid fa-tags"></i> Auto-Rôles
+  </a>
+  <a href="/guild/<%= guildId %>/xp" class="sidebar-link <%= activePage === 'xp' ? 'active' : '' %>">
+    <i class="fa-solid fa-star"></i> XP & Niveaux
+  </a>
+
+  <div class="sidebar-section-label">Fonctionnalités</div>
+  <a href="/guild/<%= guildId %>/tickets" class="sidebar-link <%= activePage === 'tickets' ? 'active' : '' %>">
+    <i class="fa-solid fa-ticket"></i> Tickets
+  </a>
+  <a href="/guild/<%= guildId %>/logs" class="sidebar-link <%= activePage === 'logs' ? 'active' : '' %>">
+    <i class="fa-solid fa-scroll"></i> Logs
+  </a>
+  <a href="/guild/<%= guildId %>/social" class="sidebar-link <%= activePage === 'social' ? 'active' : '' %>">
+    <i class="fa-solid fa-rss"></i> Réseaux Sociaux
+  </a>
+
+  <div class="sidebar-back">
+    <a href="/dashboard" class="sidebar-link">
+      <i class="fa-solid fa-arrow-left"></i> Mes serveurs
+    </a>
+  </div>
+</aside>

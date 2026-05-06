@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= code || 'Erreur' %> — Chell Dashboard</title>
+  <link rel="icon" href="/img/chell-logo.png">
+  <link rel="stylesheet" href="/css/main.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .error-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+      text-align: center;
+    }
+    .error-code {
+      font-size: 8rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0;
+      line-height: 1;
+    }
+    .error-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 1.5rem 0 1rem;
+    }
+    .error-message {
+      font-size: 1.125rem;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      max-width: 500px;
+    }
+    .error-icon {
+      font-size: 4rem;
+      color: var(--accent-purple);
+      margin-bottom: 1rem;
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .error-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="error-container">
+    <div class="error-icon">
+      <% if (code === 404) { %>
+        <i class="fa-solid fa-magnifying-glass"></i>
+      <% } else if (code === 403) { %>
+        <i class="fa-solid fa-lock"></i>
+      <% } else if (code === 500) { %>
+        <i class="fa-solid fa-server"></i>
+      <% } else { %>
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      <% } %>
+    </div>
+    
+    <div class="error-code"><%= code || '500' %></div>
+    
+    <h1 class="error-title">
+      <% if (code === 404) { %>
+        Page introuvable
+      <% } else if (code === 403) { %>
+        Accès interdit
+      <% } else if (code === 500) { %>
+        Erreur serveur
+      <% } else { %>
+        Une erreur est survenue
+      <% } %>
+    </h1>
+    
+    <p class="error-message">
+      <%= message || 'Une erreur inattendue s\'est produite. Veuillez réessayer plus tard.' %>
+    </p>
+    
+    <div class="error-actions">
+      <a href="/dashboard" class="btn btn-primary">
+        <i class="fa-solid fa-home"></i> Retour au dashboard
+      </a>
+      <a href="javascript:history.back()" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i> Page précédente
+      </a>
+    </div>
+  </div>
+</body>
+</html>

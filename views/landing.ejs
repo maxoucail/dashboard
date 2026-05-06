@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chell Dashboard</title>
+  <link rel="icon" href="/img/chell-logo.png">
+  <link rel="stylesheet" href="/css/main.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <%- include('partials/navbar') %>
+
+  <div class="main-content">
+    <section class="landing-hero">
+      <img src="/img/chell-logo.png" alt="Chell" class="landing-logo" onerror="this.style.display='none'">
+      <h1 class="landing-title">Chell Dashboard</h1>
+      <p class="landing-sub">
+        Gérez votre bot Discord <strong>Chell</strong> facilement.<br>
+        Configuration IA, modération, accueil, logs et bien plus.
+      </p>
+      <% if (user) { %>
+        <a href="/dashboard" class="btn btn-primary btn-lg">
+          <i class="fa-solid fa-grid-2"></i> Accéder à mes serveurs
+        </a>
+      <% } else { %>
+        <a href="/login" class="btn btn-primary btn-lg">
+          <i class="fab fa-discord"></i> Connexion avec Discord
+        </a>
+      <% } %>
+
+      <div class="landing-features">
+        <div class="feature-pill"><i class="fa-solid fa-brain"></i> IA Conversationnelle</div>
+        <div class="feature-pill"><i class="fa-solid fa-shield-halved"></i> Modération avancée</div>
+        <div class="feature-pill"><i class="fa-solid fa-shield-virus"></i> Anti-Raid</div>
+        <div class="feature-pill"><i class="fa-solid fa-star"></i> Système XP</div>
+        <div class="feature-pill"><i class="fa-solid fa-ticket"></i> Tickets</div>
+        <div class="feature-pill"><i class="fa-solid fa-scroll"></i> Logs détaillés</div>
+        <div class="feature-pill"><i class="fa-solid fa-rss"></i> Flux RSS / Social</div>
+        <div class="feature-pill"><i class="fa-solid fa-trophy"></i> Giveaways</div>
+      </div>
+    </section>
+  </div>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

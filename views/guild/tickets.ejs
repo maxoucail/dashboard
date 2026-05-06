@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tickets — <%= guild.name %></title>
+  <link rel="icon" href="/img/chell-logo.png">
+  <link rel="stylesheet" href="/css/main.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<%- include('../partials/navbar') %>
+<div class="layout">
+  <%- include('../partials/sidebar', { guild, guildId: guild.id, activePage: 'tickets' }) %>
+  <main class="main-content with-sidebar">
+    <div class="breadcrumb"><a href="/dashboard">Mes serveurs</a><span class="sep">›</span><a href="/guild/<%= guild.id %>"><%= guild.name %></a><span class="sep">›</span><span class="current">Tickets</span></div>
+    <div class="page-header"><h1><i class="fa-solid fa-ticket"></i> Système de tickets</h1><p>Configurez les tickets de support avec transcriptions automatiques</p></div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title"><i class="fa-solid fa-cog"></i> Configuration générale</div></div>
+      <form data-api-form="/api/guild/<%= guild.id %>/tickets">
+        <div class="toggle-row">
+          <div><div class="toggle-label">Système de tickets activé</div><div class="toggle-sub">Les membres peuvent créer des tickets</div></div>
+          <label class="toggle"><input type="checkbox" name="enabled" <%= config?.tickets?.enabled ? 'checked' : '' %>><span class="toggle-slider"></span></label>
+        </div>
+        <div class="divider"></div>
+        
+        <div class="form-group">
+          <label class="form-label">Salon de création</label>
+          <select name="createChannel" class="form-select">
+            <option value="">— Sélectionner un salon —</option>
+            <% textChannels.forEach(ch => { %>
+              <option value="<%= ch.id %>" <%= config?.tickets?.createChannel === ch.id ? 'selected' : '' %>><%= ch.name %></option>
+            <% }) %>
+          </select>
+          <div class="form-hint">Le bot enverra un panneau pour créer des tickets</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Catégorie des tickets</label>
+          <select name="category" class="form-select">
+            <option value="">— Sélectionner une catégorie —</option>
+            <% categories.forEach(cat => { %>
+              <option value="<%= cat.id %>" <%= config?.tickets?.category === cat.id ? 'selected' : '' %>><%= cat.name %></option>
+            <% }) %>
+          </select>
+          <div class="form-hint">Les tickets seront créés dans cette catégorie</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Rôle de support</label>
+          <select name="supportRole" class="form-select" multiple>
+            <option value="">— Aucun rôle —</option>
+            <% roles.forEach(role => { %>
+              <option value="<%= role.id %>" <%= config?.tickets?.supportRoles?.includes(role.id) ? 'selected' : '' %>><%= role.name %></option>
+            <% }) %>
+          </select>
+          <div class="form-hint">Les membres avec ces rôles auront accès aux tickets</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Salon des transcriptions</label>
+          <select name="transcriptChannel" class="form-select">
+            <option value="">— Aucun —</option>
+            <% textChannels.forEach(ch => { %>
+              <option value="<%= ch.id %>" <%= config?.tickets?.transcriptChannel === ch.id ? 'selected' : '' %>><%= ch.name %></option>
+            <% }) %>
+          </select>
+          <div class="form-hint">Transcriptions HTML quand un ticket est fermé</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Max tickets ouverts par membre</label>
+            <input type="number" name="maxOpen" class="form-input" min="1" max="10" value="<%= config?.tickets?.maxOpen || 1 %>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Auto-fermeture (heures)</label>
+            <input type="number" name="autoCloseHours" class="form-input" min="0" max="168" value="<%= config?.tickets?.autoCloseHours || 48 %>">
+            <div class="form-hint">0 = désactivé</div>
+          </div>
+        </div>
+
+        <div class="toggle-row">
+          <div><div class="toggle-label">Notifications DM</div><div class="toggle-sub">Envoyer un message privé à la création du ticket</div></div>
+          <label class="toggle"><input type="checkbox" name="dmNotify" <%= config?.tickets?.dmNotify !== false ? 'checked' : '' %>><span class="toggle-slider"></span></label>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Message de bienvenue</label>
+          <textarea name="welcomeMessage" class="form-textarea" rows="3" placeholder="Merci d'avoir créé un ticket ! L'équipe de support vous répondra sous peu. 🎫"><%= config?.tickets?.welcomeMessage || '' %></textarea>
+          <div class="form-hint">Message envoyé à l'ouverture du ticket</div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full mt-16"><i class="fa-solid fa-floppy-disk"></i> Sauvegarder</button>
+      </form>
+    </div>
+  </main>
+</div>
+<div id="toast"></div>
+<script src="/js/main.js"></script>
+</body>
+</html>

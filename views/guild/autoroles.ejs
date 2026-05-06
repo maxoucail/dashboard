@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auto-Rôles — <%= guild.name %></title>
+  <link rel="icon" href="/img/chell-logo.png">
+  <link rel="stylesheet" href="/css/main.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<%- include('../partials/navbar') %>
+<div class="layout">
+  <%- include('../partials/sidebar', { guild, guildId: guild.id, activePage: 'autoroles' }) %>
+  <main class="main-content with-sidebar">
+    <div class="breadcrumb"><a href="/dashboard">Mes serveurs</a><span class="sep">›</span><a href="/guild/<%= guild.id %>"><%= guild.name %></a><span class="sep">›</span><span class="current">Auto-Rôles</span></div>
+    <div class="page-header"><h1><i class="fa-solid fa-user-tag"></i> Rôles automatiques</h1><p>Attribuez automatiquement des rôles aux nouveaux membres</p></div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title"><i class="fa-solid fa-user-plus"></i> Rôles à l'arrivée</div></div>
+      <form data-api-form="/api/guild/<%= guild.id %>/autoroles">
+        <div class="toggle-row">
+          <div><div class="toggle-label">Auto-rôles activés</div><div class="toggle-sub">Attribuer automatiquement des rôles aux nouveaux membres</div></div>
+          <label class="toggle"><input type="checkbox" name="enabled" <%= config?.autoroles?.enabled ? 'checked' : '' %>><span class="toggle-slider"></span></label>
+        </div>
+        <div class="divider"></div>
+        
+        <div class="form-group">
+          <label class="form-label">Rôles automatiques</label>
+          <div class="role-selector">
+            <% roles.filter(r => !r.managed && r.id !== guild.id).forEach(role => { %>
+              <label class="role-checkbox">
+                <input type="checkbox" name="autoRoles[]" value="<%= role.id %>" <%= config?.autoroles?.autoRoles?.includes(role.id) ? 'checked' : '' %>>
+                <span class="role-badge" style="background-color: <%= role.color ? '#' + role.color.toString(16).padStart(6, '0') : '#99aab5' %>"><%= role.name %></span>
+              </label>
+            <% }) %>
+          </div>
+          <div class="form-hint">Cochez les rôles à attribuer automatiquement</div>
+        </div>
+
+        <div class="toggle-row">
+          <div><div class="toggle-label">Ignorer les bots</div><div class="toggle-sub">Ne pas attribuer de rôles aux bots</div></div>
+          <label class="toggle"><input type="checkbox" name="ignoreBots" <%= config?.autoroles?.ignoreBots !== false ? 'checked' : '' %>><span class="toggle-slider"></span></label>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full mt-16"><i class="fa-solid fa-floppy-disk"></i> Sauvegarder</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><i class="fa-solid fa-hand-pointer"></i> Rôles par réaction</div>
+        <button class="btn btn-sm btn-secondary" onclick="addReactionRole()"><i class="fa-solid fa-plus"></i> Ajouter</button>
+      </div>
+      <div class="reaction-roles-list">
+        <% if (config?.autoroles?.reactionRoles && config.autoroles.reactionRoles.length > 0) { %>
+          <% config.autoroles.reactionRoles.forEach((rr, idx) => { %>
+            <div class="reaction-role-item">
+              <div class="rr-info">
+                <div class="rr-emoji"><%= rr.emoji %></div>
+                <div class="rr-details">
+                  <div class="rr-role"><%= roles.find(r => r.id === rr.roleId)?.name || rr.roleId %></div>
+                  <div class="rr-channel"><i class="fa-solid fa-hashtag"></i><%= textChannels.find(c => c.id === rr.channelId)?.name || rr.channelId %></div>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-danger" onclick="deleteReactionRole(<%= idx %>)"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <div class="empty-state"><i class="fa-solid fa-face-smile"></i><div>Aucun rôle par réaction configuré</div></div>
+        <% } %>
+      </div>
+    </div>
+  </main>
+</div>
+<div id="toast"></div>
+<script src="/js/main.js"></script>
+<script>
+function addReactionRole() {
+  showToast('Utilisez la commande /reaction-role dans Discord pour ajouter des rôles par réaction', 'info');
+}
+function deleteReactionRole(idx) {
+  if (confirm('Supprimer ce rôle par réaction ?')) {
+    apiPost(`/api/guild/<%= guild.id %>/autoroles/reaction/${idx}/delete`, {})
+      .then(() => {
+        showToast('Rôle par réaction supprimé', 'success');
+        setTimeout(() => location.reload(), 1000);
+      });
+  }
+}
+</script>
+</body>
+</html>

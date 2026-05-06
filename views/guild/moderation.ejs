@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modération — <%= guild.name %></title>
+  <link rel="icon" href="/img/chell-logo.png">
+  <link rel="stylesheet" href="/css/main.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<%- include('../partials/navbar') %>
+<div class="layout">
+  <%- include('../partials/sidebar', { guild, guildId: guild.id, activePage: 'moderation' }) %>
+  <main class="main-content with-sidebar">
+
+    <div class="breadcrumb">
+      <a href="/dashboard">Mes serveurs</a><span class="sep">›</span>
+      <a href="/guild/<%= guild.id %>"><%= guild.name %></a><span class="sep">›</span>
+      <span class="current">Modération</span>
+    </div>
+
+    <div class="page-header">
+      <h1><i class="fa-solid fa-shield-halved"></i> Modération</h1>
+      <p>Historique des avertissements et configuration de la modération</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card red">
+        <div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div><div class="stat-value"><%= warns.length %></div><div class="stat-label">Warns récents</div></div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-icon purple"><i class="fa-solid fa-gavel"></i></div>
+        <div>
+          <div class="stat-value"><%= config?.moderation?.maxWarns || 3 %></div>
+          <div class="stat-label">Max warns avant sanction</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Config sanctions -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i class="fa-solid fa-gavel"></i> Configuration sanctions</div>
+        </div>
+        <form data-api-form="/api/guild/<%= guild.id %>/automod">
+          <div class="form-group">
+            <label class="form-label">Warns max avant bannissement</label>
+            <input type="number" name="maxWarns" class="form-input" value="<%= config?.moderation?.maxWarns || 3 %>" min="1" max="20">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Action à la limite</label>
+            <select name="warnAction" class="form-select">
+              <option value="ban"     <%= (config?.moderation?.warnAction || 'ban') === 'ban'     ? 'selected' : '' %>>Ban</option>
+              <option value="kick"    <%= (config?.moderation?.warnAction) === 'kick'    ? 'selected' : '' %>>Kick</option>
+              <option value="timeout" <%= (config?.moderation?.warnAction) === 'timeout' ? 'selected' : '' %>>Timeout</option>
+              <option value="mute"    <%= (config?.moderation?.warnAction) === 'mute'    ? 'selected' : '' %>>Mute</option>
+            </select>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">DM à l'utilisateur lors d'un warn</div></div>
+            <label class="toggle">
+              <input type="checkbox" name="warnDm" <%= config?.moderation?.warnDm ? 'checked' : '' %>>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <button type="submit" class="btn btn-primary mt-16 w-full"><i class="fa-solid fa-floppy-disk"></i> Sauvegarder</button>
+        </form>
+      </div>
+
+      <!-- Derniers warns -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i class="fa-solid fa-list"></i> Derniers avertissements</div>
+        </div>
+        <% if (warns.length === 0) { %>
+          <div class="empty-state"><i class="fa-solid fa-check-circle" style="color:var(--accent-green)"></i><p>Aucun avertissement.</p></div>
+        <% } else { %>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Utilisateur</th><th>Raison</th><th>Mod</th><th>Date</th></tr></thead>
+              <tbody>
+                <% warns.forEach(w => { %>
+                <tr>
+                  <td><span class="text-mono" style="font-size:11px"><%= w.user_id %></span></td>
+                  <td><%= w.reason || '—' %></td>
+                  <td><span class="text-mono" style="font-size:11px"><%= w.moderator_id || '—' %></span></td>
+                  <td class="text-muted"><%= w.created_at ? new Date(w.created_at).toLocaleDateString('fr-FR') : '—' %></td>
+                </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+  </main>
+</div>
+<div id="toast"></div>
+<script src="/js/main.js"></script>
+</body>
+</html>
