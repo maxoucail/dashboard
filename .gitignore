@@ -2,3 +2,7 @@ node_modules/
 .env
 *.log
 .DS_Store
+# SPINSTORM game files (unrelated project, different branch)
+public/js/game.js
+public/js/main.js
+public/js/p2p.js
