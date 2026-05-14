@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CIPHER // SECURE COMM</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<!-- ═══════════════════════ LOGIN SCREEN ═══════════════════════ -->
+<div id="login-screen" class="screen">
+  <div class="login-wrap">
+    <pre class="ascii-logo">
+  ██████╗██╗██████╗ ██╗  ██╗███████╗██████╗
+ ██╔════╝██║██╔══██╗██║  ██║██╔════╝██╔══██╗
+ ██║     ██║██████╔╝███████║█████╗  ██████╔╝
+ ██║     ██║██╔═══╝ ██╔══██║██╔══╝  ██╔══██╗
+ ╚██████╗██║██║     ██║  ██║███████╗██║  ██║
+  ╚═════╝╚═╝╚═╝     ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝</pre>
+    <div class="login-sub">// ENCRYPTED PEER-TO-PEER COMMUNICATION SYSTEM //</div>
+    <div class="login-sub dim">AES-256-GCM &nbsp;·&nbsp; ECDH-P256 &nbsp;·&nbsp; HKDF-SHA-256</div>
+
+    <div class="login-box">
+      <div class="login-label">&gt; IDENTIFY YOURSELF — ENTER CALLSIGN:</div>
+      <div class="login-input-row">
+        <span class="prompt">$</span>
+        <input id="callsign-input" type="text" maxlength="20"
+               placeholder="ALPHA_7" autocomplete="off" spellcheck="false">
+        <span class="blink">_</span>
+      </div>
+      <div id="login-error" class="err hidden"></div>
+      <button id="login-btn" class="btn-primary">[ AUTHENTICATE ]</button>
+      <div class="login-note dim">⚠ TEMPORARY SESSION &nbsp;—&nbsp; ZERO PERSISTENCE &nbsp;—&nbsp; CLOSE TAB TO ERASE</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ MAIN APP ═══════════════════════════ -->
+<div id="main-app" class="screen hidden">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-l">
+      <span class="logo">▣ CIPHER</span>
+      <span class="sep">│</span>
+      <span>CALLSIGN: <b id="my-callsign" class="hi"></b></span>
+      <span class="sep">│</span>
+      <span>STATUS: <span class="st-online">■ ONLINE</span></span>
+      <span class="sep">│</span>
+      <span class="dim" id="fp-display" title="Your key fingerprint (SHA-256 of ECDH public key)"></span>
+    </div>
+    <div class="topbar-r">
+      <span class="dim small">E2E: AES-256-GCM + ECDH-P256</span>
+      <span class="sep">│</span>
+      <button id="burn-btn" class="btn-danger">[ BURN SESSION ]</button>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- LEFT — OPERATOR LIST -->
+    <div class="panel-left">
+      <div class="panel-hdr">// ONLINE OPERATORS [<span id="user-count">0</span>]</div>
+      <div class="search-row">
+        <span class="prompt">&gt;</span>
+        <input id="user-search" type="text" placeholder="SEARCH CALLSIGN" autocomplete="off">
+      </div>
+      <div id="users-list" class="users-list"></div>
+    </div>
+
+    <!-- RIGHT — CHAT -->
+    <div class="panel-right">
+
+      <!-- No active chat -->
+      <div id="no-chat" class="no-chat">
+        <div class="no-chat-inner">
+          <div class="no-chat-logo">▣</div>
+          <div>SELECT AN OPERATOR</div>
+          <div class="dim">TO OPEN A SECURE CHANNEL</div>
+          <div class="dim small" style="margin-top:16px">All traffic is end-to-end encrypted.<br>The server only routes signaling — it cannot read your messages.</div>
+        </div>
+      </div>
+
+      <!-- Active chat -->
+      <div id="active-chat" class="chat-wrap hidden">
+
+        <div class="chat-hdr">
+          <div class="chat-hdr-l">
+            <span>// SECURE CHANNEL: </span>
+            <span class="hi" id="chat-name"></span>
+            <span class="sep">│</span>
+            <span id="chat-status" class="st-connecting">◌ ESTABLISHING</span>
+          </div>
+          <div class="chat-hdr-r">
+            <span class="dim small" id="remote-fp"></span>
+          </div>
+        </div>
+
+        <div id="messages" class="messages"></div>
+
+        <div class="input-area">
+          <div id="file-preview" class="file-preview hidden"></div>
+          <div class="input-row">
+            <span class="prompt">&gt;</span>
+            <textarea id="msg-input" rows="1" maxlength="8192"
+                      placeholder="TRANSMIT ENCRYPTED MESSAGE..."></textarea>
+            <button id="attach-btn" class="btn-icon" title="Attach file">⊕</button>
+            <button id="send-btn" class="btn-primary">[ SEND ]</button>
+          </div>
+          <input type="file" id="file-input" style="display:none" multiple>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/crypto.js"></script>
+<script src="/js/peer.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>
