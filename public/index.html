@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPINSTORM.io — Spin. Battle. Dominate.</title>
+
+  <!-- Socket.io (global `io`) -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <!-- Three.js via importmap -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.167.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.167.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #010113;
+      --panel:    rgba(0, 8, 38, 0.82);
+      --border:   rgba(0, 140, 255, 0.25);
+      --cyan:     #00ffff;
+      --magenta:  #ff00cc;
+      --purple:   #7b00ff;
+      --text:     #c8e0ff;
+      --text-dim: #5577aa;
+      --danger:   #ff2244;
+      --success:  #00ff88;
+      --font-hd:  'Orbitron', monospace;
+      --font-bd:  'Inter', sans-serif;
+      --glow-c:   0 0 8px #00ffff, 0 0 20px #0088ff44;
+      --glow-m:   0 0 8px #ff00cc, 0 0 20px #ff00cc44;
+    }
+
+    html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--font-bd); }
+
+    /* ── Background particles ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50%  0%, rgba(0, 80, 200, .18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(120, 0, 255, .12) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 0%   60%, rgba(0, 200, 255, .07) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* ── Screens ── */
+    .screen { position: fixed; inset: 0; z-index: 10; display: none; }
+    .screen.active { display: flex; }
+
+    /* ════════════════════════════════════════════════
+       LOGIN
+    ════════════════════════════════════════════════ */
+    #screen-login {
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 2rem;
+    }
+
+    .login-logo {
+      text-align: center;
+      animation: logo-in .8s cubic-bezier(.23,1,.32,1) both;
+    }
+    .login-logo h1 {
+      font-family: var(--font-hd); font-size: clamp(2.4rem, 8vw, 5rem); font-weight: 900;
+      letter-spacing: .12em;
+      background: linear-gradient(135deg, #00ffff 0%, #7b00ff 50%, #ff00cc 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 24px #0088ff88);
+    }
+    .login-logo p {
+      font-family: var(--font-hd); font-size: .85rem; letter-spacing: .35em;
+      color: var(--text-dim); text-transform: uppercase; margin-top: .4rem;
+    }
+
+    @keyframes logo-in {
+      from { opacity: 0; transform: translateY(-30px) scale(.9); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .login-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.2rem 2.6rem;
+      width: min(400px, 92vw);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 0 40px rgba(0,100,255,.12), inset 0 0 0 1px rgba(0,150,255,.08);
+      animation: card-in .7s .1s cubic-bezier(.23,1,.32,1) both;
+    }
+
+    @keyframes card-in {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .login-card h2 {
+      font-family: var(--font-hd); font-size: 1rem; letter-spacing: .15em;
+      color: var(--cyan); margin-bottom: 1.4rem; text-align: center;
+    }
+
+    .input-group { display: flex; gap: .5rem; margin-bottom: 1rem; }
+
+    input[type="text"] {
+      flex: 1; padding: .75rem 1rem;
+      background: rgba(0,20,60,.7); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-family: var(--font-bd); font-size: .95rem;
+      outline: none; transition: border-color .2s, box-shadow .2s;
+    }
+    input[type="text"]:focus { border-color: var(--cyan); box-shadow: var(--glow-c); }
+    input[type="text"]::placeholder { color: var(--text-dim); }
+
+    .btn {
+      padding: .72rem 1.4rem; border: none; border-radius: 8px; cursor: pointer;
+      font-family: var(--font-hd); font-size: .8rem; letter-spacing: .1em; font-weight: 700;
+      transition: transform .15s, box-shadow .2s;
+    }
+    .btn:hover  { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0055ff, #00aaff);
+      color: #fff; box-shadow: 0 0 16px #0055ff66;
+    }
+    .btn-primary:hover { box-shadow: 0 0 24px #0088ffaa; }
+
+    .btn-discord {
+      width: 100%; margin-top: .5rem;
+      background: linear-gradient(135deg, #5865F2, #7289da);
+      color: #fff; box-shadow: 0 0 16px #5865f266;
+      display: flex; align-items: center; justify-content: center; gap: .6rem;
+    }
+
+    .divider { text-align: center; color: var(--text-dim); font-size: .8rem; margin: .9rem 0; position: relative; }
+    .divider::before, .divider::after {
+      content: ''; position: absolute; top: 50%; width: 42%; height: 1px;
+      background: var(--border);
+    }
+    .divider::before { left: 0; }
+    .divider::after  { right: 0; }
+
+    #login-error { color: var(--danger); font-size: .82rem; margin-top: .4rem; text-align: center; min-height: 1.2em; }
+
+    .login-note { font-size: .78rem; color: var(--text-dim); text-align: center; margin-top: .8rem; }
+
+    /* ════════════════════════════════════════════════
+       LOBBY
+    ════════════════════════════════════════════════ */
+    #screen-lobby {
+      flex-direction: column;
+      background: var(--bg);
+    }
+
+    .lobby-header {
+      display: flex; align-items: center; gap: 1rem; padding: .7rem 1.4rem;
+      background: var(--panel); border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px); z-index: 5; flex-shrink: 0;
+    }
+    .lobby-logo {
+      font-family: var(--font-hd); font-size: 1.2rem; font-weight: 900; letter-spacing: .1em;
+      background: linear-gradient(135deg, #00ffff, #7b00ff); -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .lobby-user {
+      margin-left: auto; display: flex; align-items: center; gap: .6rem;
+    }
+    #lobby-avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--cyan); }
+    #lobby-username { font-family: var(--font-hd); font-size: .85rem; color: var(--cyan); }
+    #lobby-badge { font-size: .7rem; padding: .2rem .5rem; border-radius: 4px; background: rgba(0,100,255,.2); color: var(--text-dim); }
+    .btn-sm-header { padding: .4rem .9rem; font-size: .72rem; background: rgba(255,30,30,.15); border: 1px solid rgba(255,30,30,.3); color: #ff6688; border-radius: 6px; cursor: pointer; font-family: var(--font-hd); letter-spacing: .08em; transition: background .2s; }
+    .btn-sm-header:hover { background: rgba(255,30,30,.3); }
+
+    .lobby-body {
+      flex: 1; display: grid;
+      grid-template-columns: 260px 1fr 280px;
+      overflow: hidden;
+    }
+
+    .panel {
+      background: var(--panel); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow: hidden;
+      backdrop-filter: blur(8px);
+    }
+    .panel:last-child { border-right: none; border-left: 1px solid var(--border); }
+
+    .panel-header {
+      padding: .8rem 1.1rem; border-bottom: 1px solid var(--border);
+      font-family: var(--font-hd); font-size: .78rem; letter-spacing: .12em; color: var(--cyan);
+      flex-shrink: 0;
+    }
+
+    .panel-scroll { flex: 1; overflow-y: auto; padding: .5rem; }
+    .panel-scroll::-webkit-scrollbar { width: 4px; }
+    .panel-scroll::-webkit-scrollbar-track { background: transparent; }
+    .panel-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* Player list */
+    .player-item {
+      display: flex; align-items: center; gap: .6rem;
+      padding: .5rem .7rem; border-radius: 8px; margin-bottom: .25rem;
+      background: rgba(0,10,40,.5); border: 1px solid transparent;
+      transition: border-color .2s, background .2s;
+    }
+    .player-item:hover  { border-color: var(--border); background: rgba(0,20,60,.6); }
+    .player-item.friend { border-color: rgba(0,255,136,.25); background: rgba(0,60,30,.3); }
+    .player-avatar { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--border); }
+    .player-info { flex: 1; min-width: 0; }
+    .player-name { display: block; font-size: .85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .in-room { font-size: .68rem; color: var(--text-dim); }
+    .badge { font-size: .62rem; padding: .1rem .4rem; border-radius: 3px; margin-left: .3rem; vertical-align: middle; }
+    .badge.discord { background: rgba(88,101,242,.25); color: #9aa4fa; }
+    .badge.guest   { background: rgba(0,100,255,.15); color: #6699ff; }
+    .btn-sm {
+      padding: .28rem .65rem; font-size: .68rem; border-radius: 5px; cursor: pointer;
+      background: rgba(0,100,255,.18); border: 1px solid rgba(0,100,255,.3); color: var(--text);
+      font-family: var(--font-hd); letter-spacing: .06em; transition: background .2s;
+      white-space: nowrap;
+    }
+    .btn-sm:hover:not(:disabled) { background: rgba(0,100,255,.35); }
+    .btn-sm:disabled { opacity: .5; cursor: default; }
+    .btn-friend { color: var(--success); border-color: rgba(0,255,136,.25); }
+
+    /* Room panel (center) */
+    .rooms-panel { border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+
+    .rooms-top {
+      padding: .8rem 1.1rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: .6rem; flex-shrink: 0;
+    }
+    .rooms-top-title { font-family: var(--font-hd); font-size: .78rem; letter-spacing: .12em; color: var(--cyan); flex: 1; }
+
+    .btn-create {
+      padding: .45rem 1rem; font-size: .72rem; border: 1px solid rgba(0,255,255,.3);
+      background: rgba(0,200,255,.1); color: var(--cyan); border-radius: 7px; cursor: pointer;
+      font-family: var(--font-hd); letter-spacing: .08em; transition: all .2s;
+    }
+    .btn-create:hover { background: rgba(0,200,255,.22); box-shadow: var(--glow-c); }
+
+    .room-item {
+      display: flex; align-items: center; justify-content: space-between; gap: .8rem;
+      padding: .75rem 1rem; margin-bottom: .35rem; border-radius: 10px;
+      background: rgba(0,8,35,.6); border: 1px solid var(--border);
+      transition: border-color .2s, background .2s;
+    }
+    .room-item:hover { border-color: rgba(0,150,255,.4); background: rgba(0,15,50,.7); }
+    .room-info { flex: 1; min-width: 0; display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; }
+    .room-name { font-family: var(--font-hd); font-size: .82rem; color: var(--text); }
+    .room-count { font-size: .75rem; color: var(--text-dim); }
+    .room-state { font-size: .67rem; padding: .15rem .45rem; border-radius: 4px; }
+    .room-state.waiting { background: rgba(0,255,136,.12); color: var(--success); }
+    .room-state.playing { background: rgba(255,100,0,.15); color: #ffaa44; }
+    .btn-join {
+      padding: .38rem .85rem; font-size: .72rem; border: 1px solid rgba(0,255,255,.3);
+      background: rgba(0,200,255,.1); color: var(--cyan); border-radius: 6px; cursor: pointer;
+      font-family: var(--font-hd); letter-spacing: .06em; transition: all .2s;
+      flex-shrink: 0;
+    }
+    .btn-join:hover:not(:disabled) { background: rgba(0,200,255,.25); box-shadow: var(--glow-c); }
+    .btn-join:disabled { opacity: .4; cursor: default; }
+
+    .empty-state {
+      text-align: center; color: var(--text-dim); font-size: .82rem;
+      padding: 2rem; display: flex; flex-direction: column; align-items: center; gap: .8rem;
+    }
+    .empty-state-icon { font-size: 2.5rem; opacity: .5; }
+
+    /* Chat panel */
+    .chat-panel { display: flex; flex-direction: column; }
+
+    #lobby-chat-log, #room-chat-log {
+      flex: 1; overflow-y: auto; padding: .5rem .8rem; display: flex; flex-direction: column; gap: .3rem;
+    }
+    .chat-msg { font-size: .8rem; line-height: 1.4; word-break: break-word; }
+    .chat-name { font-weight: 600; color: var(--cyan); margin-right: .3rem; }
+    .chat-text { color: var(--text); }
+
+    .chat-form {
+      display: flex; gap: .4rem; padding: .5rem .8rem; border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .chat-form input { flex: 1; font-size: .82rem; }
+    .chat-form .btn-send { padding: .5rem .9rem; font-size: .72rem; }
+
+    /* ════════════════════════════════════════════════
+       ROOM (waiting room)
+    ════════════════════════════════════════════════ */
+    #screen-room {
+      flex-direction: column; align-items: center; justify-content: center;
+      background: var(--bg);
+    }
+
+    .room-card {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+      padding: 2rem 2.5rem; width: min(640px, 94vw); backdrop-filter: blur(14px);
+      box-shadow: 0 0 60px rgba(0,80,255,.12);
+    }
+
+    .room-card-header {
+      display: flex; align-items: center; gap: 1rem; margin-bottom: 1.4rem;
+      padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+    }
+    #room-title { font-family: var(--font-hd); font-size: 1.2rem; color: var(--cyan); flex: 1; }
+
+    .room-actions { display: flex; gap: .5rem; }
+
+    .btn-danger { background: rgba(255,30,60,.15); border: 1px solid rgba(255,30,60,.3); color: #ff6688; }
+    .btn-danger:hover { background: rgba(255,30,60,.3); }
+
+    .btn-start-game {
+      background: linear-gradient(135deg, #00cc66, #0055ff); color: #fff;
+      box-shadow: 0 0 20px rgba(0,200,100,.3); border: none;
+    }
+    .btn-start-game:hover { box-shadow: 0 0 30px rgba(0,200,100,.5); }
+
+    #waiting-players { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 1.2rem; min-height: 80px; }
+
+    .waiting-player {
+      display: flex; flex-direction: column; align-items: center; gap: .4rem;
+      padding: .9rem .75rem; background: rgba(0,10,40,.6); border: 1px solid var(--border);
+      border-radius: 10px; width: 100px;
+    }
+    .waiting-avatar { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--border); }
+    .waiting-name { font-size: .72rem; text-align: center; color: var(--text); word-break: break-all; }
+
+    .room-hint { font-size: .78rem; color: var(--text-dim); text-align: center; }
+
+    .room-body-chat { margin-top: 1rem; border-top: 1px solid var(--border); padding-top: .8rem; }
+    .room-body-chat .panel-header { padding: 0 0 .5rem; border: none; }
+    #room-chat-log { max-height: 140px; overflow-y: auto; padding: 0; }
+    .room-body-chat .chat-form { padding: .4rem 0 0; }
+
+    /* ════════════════════════════════════════════════
+       GAME
+    ════════════════════════════════════════════════ */
+    #screen-game { background: #000; }
+
+    #game-canvas {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+    }
+
+    /* HUD */
+    .hud { position: absolute; pointer-events: none; z-index: 20; }
+
+    #hud-bottom-left {
+      bottom: 1.5rem; left: 1.5rem;
+      display: flex; flex-direction: column; gap: .4rem;
+    }
+
+    .hud-label {
+      font-family: var(--font-hd); font-size: .65rem; letter-spacing: .15em; color: var(--text-dim);
+    }
+
+    .hud-bar {
+      width: 220px; height: 12px; background: rgba(0,0,0,.5);
+      border: 1px solid rgba(0,200,255,.3); border-radius: 6px; overflow: hidden;
+    }
+    #hud-bar-fill {
+      height: 100%; width: 100%; border-radius: 6px;
+      background: var(--cyan);
+      transition: width .15s linear, background .3s;
+      box-shadow: 0 0 10px currentColor;
+    }
+    .hud-spin-num {
+      font-family: var(--font-hd); font-size: 1.1rem; color: var(--cyan);
+      text-shadow: var(--glow-c);
+    }
+
+    #hud-top-right {
+      top: 1rem; right: 1rem;
+      display: flex; flex-direction: column; gap: .3rem; min-width: 180px;
+    }
+    .hud-player-row {
+      display: flex; align-items: center; gap: .5rem;
+      background: rgba(0,0,0,.45); border-radius: 6px; padding: .3rem .5rem;
+    }
+    .hud-player-row.me { border-left: 2px solid var(--cyan); }
+    .hud-player-name { font-size: .72rem; font-family: var(--font-hd); min-width: 80px; overflow: hidden; text-overflow: ellipsis; }
+    .hud-mini-bar { flex: 1; height: 5px; background: rgba(255,255,255,.1); border-radius: 3px; overflow: hidden; }
+    .hud-mini-fill { height: 100%; border-radius: 3px; transition: width .2s; }
+
+    #hud-controls {
+      bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+      font-family: var(--font-hd); font-size: .65rem; letter-spacing: .1em; color: rgba(100,150,255,.5);
+      white-space: nowrap;
+    }
+
+    /* Overlays */
+    .overlay {
+      position: absolute; inset: 0; z-index: 30;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: rgba(0,0,0,.72); backdrop-filter: blur(6px);
+      gap: 1.2rem;
+    }
+    .overlay.hidden { display: none; }
+
+    .overlay h2 {
+      font-family: var(--font-hd); font-size: clamp(1.4rem, 4vw, 2.6rem); letter-spacing: .1em;
+      color: var(--danger); text-shadow: 0 0 30px #ff002288;
+    }
+    .overlay h2.win { color: var(--cyan); text-shadow: 0 0 30px #00ffff88; }
+    .overlay p { color: var(--text-dim); font-size: .9rem; }
+    .overlay-actions { display: flex; gap: 1rem; margin-top: .4rem; }
+
+    /* ── Toast ── */
+    #toast-container {
+      position: fixed; bottom: 1rem; right: 1rem; z-index: 9999;
+      display: flex; flex-direction: column; gap: .5rem; max-width: 320px;
+    }
+    .toast {
+      background: rgba(0,10,40,.92); border: 1px solid var(--border);
+      border-radius: 10px; padding: .8rem 1rem; backdrop-filter: blur(10px);
+      font-size: .84rem; color: var(--text); box-shadow: 0 4px 20px rgba(0,0,0,.4);
+      animation: slide-in .3s ease;
+    }
+    .toast p { margin-bottom: .5rem; }
+    .toast button {
+      margin-right: .4rem; padding: .3rem .7rem; font-size: .72rem;
+      border-radius: 5px; cursor: pointer; border: 1px solid var(--border);
+      background: rgba(0,80,200,.2); color: var(--text); font-family: var(--font-hd);
+      transition: background .2s;
+    }
+    .toast button:hover { background: rgba(0,80,200,.4); }
+
+    @keyframes slide-in {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .hidden { display: none !important; }
+
+    /* scrollbar global */
+    * { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════ LOGIN ═══════════════════ -->
+<div id="screen-login" class="screen">
+  <div class="login-logo">
+    <h1>SPINSTORM</h1>
+    <p>Spin &nbsp;·&nbsp; Battle &nbsp;·&nbsp; Dominate</p>
+  </div>
+
+  <div class="login-card">
+    <h2>ENTRER DANS L'ARÈNE</h2>
+
+    <form id="login-form">
+      <div class="input-group">
+        <input type="text" id="input-username" placeholder="Ton pseudo (2–20 car.)" maxlength="20" autocomplete="off" autofocus>
+        <button type="submit" class="btn btn-primary">GO</button>
+      </div>
+    </form>
+    <div id="login-error"></div>
+
+    <div class="divider">ou</div>
+
+    <button id="btn-discord" class="btn btn-discord">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.034.055a19.9 19.9 0 0 0 5.993 3.03.08.08 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      Continuer avec Discord
+    </button>
+
+    <p class="login-note">Session temporaire · Aucun mot de passe · Aucune inscription</p>
+  </div>
+</div>
+
+<!-- ═══════════════════ LOBBY ═══════════════════ -->
+<div id="screen-lobby" class="screen" style="flex-direction:column">
+
+  <header class="lobby-header">
+    <span class="lobby-logo">SPINSTORM</span>
+    <div class="lobby-user">
+      <img id="lobby-avatar" src="" alt="">
+      <span id="lobby-username"></span>
+      <span id="lobby-badge"></span>
+      <button id="btn-logout" class="btn-sm-header">Déconnexion</button>
+    </div>
+  </header>
+
+  <div class="lobby-body">
+
+    <!-- Left: players + friends -->
+    <div class="panel">
+      <div class="panel-header">JOUEURS EN LIGNE</div>
+      <div class="panel-scroll" id="player-list">
+        <div class="empty-state"><div class="empty-state-icon">🌀</div><span>Connexion…</span></div>
+      </div>
+    </div>
+
+    <!-- Center: rooms -->
+    <div class="rooms-panel">
+      <div class="rooms-top">
+        <span class="rooms-top-title">ARÈNES</span>
+        <button class="btn-create" id="btn-create-room">+ Créer</button>
+      </div>
+      <div class="panel-scroll" id="room-list">
+        <div class="empty-state"><div class="empty-state-icon">⚔</div><span>Aucune arène ouverte.<br>Créez-en une !</span></div>
+      </div>
+    </div>
+
+    <!-- Right: chat -->
+    <div class="panel chat-panel">
+      <div class="panel-header">CHAT GLOBAL</div>
+      <div id="lobby-chat-log"></div>
+      <form class="chat-form" id="lobby-chat-form">
+        <input type="text" id="lobby-chat-input" placeholder="Message…" maxlength="200" autocomplete="off">
+        <button type="submit" class="btn btn-primary btn-send">↵</button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════ ROOM (waiting) ═══════════════════ -->
+<div id="screen-room" class="screen">
+  <div class="room-card">
+    <div class="room-card-header">
+      <span id="room-title">Arène</span>
+      <div class="room-actions">
+        <button class="btn btn-sm btn-start-game hidden" id="btn-start">▶ Lancer la partie</button>
+        <button class="btn btn-sm btn-danger" id="btn-leave-room">✕ Quitter</button>
+      </div>
+    </div>
+
+    <div id="waiting-players"></div>
+
+    <p class="room-hint" id="room-hint-text">En attente de joueurs… (1 suffit pour tester !)</p>
+
+    <div class="room-body-chat">
+      <div class="panel-header">CHAT</div>
+      <div id="room-chat-log"></div>
+      <form class="chat-form" id="room-chat-form">
+        <input type="text" id="room-chat-input" placeholder="Message…" maxlength="200" autocomplete="off">
+        <button type="submit" class="btn btn-primary btn-send">↵</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ GAME ═══════════════════ -->
+<div id="screen-game" class="screen">
+
+  <canvas id="game-canvas"></canvas>
+
+  <!-- HUD elements -->
+  <div class="hud" id="hud-bottom-left">
+    <span class="hud-label">ÉNERGIE DE ROTATION</span>
+    <div style="display:flex;align-items:center;gap:.7rem">
+      <div class="hud-bar"><div id="hud-bar-fill"></div></div>
+      <span class="hud-spin-num" id="hud-spin-val">100</span>
+    </div>
+  </div>
+
+  <div class="hud" id="hud-top-right">
+    <div id="hud-players"></div>
+  </div>
+
+  <div class="hud" id="hud-controls">
+    WASD / ↑↓←→ : Déplacer &nbsp;|&nbsp; ESPACE : Boost &nbsp;|&nbsp; Restez dans l'arène !
+  </div>
+
+  <!-- Dead overlay -->
+  <div class="overlay hidden" id="dead-overlay">
+    <h2>ÉLIMINÉ</h2>
+    <p>Votre toupie s'est arrêtée…</p>
+    <div class="overlay-actions">
+      <button class="btn btn-primary" id="btn-respawn">↩ Retour au lobby</button>
+    </div>
+  </div>
+
+  <!-- Win overlay -->
+  <div class="overlay hidden" id="win-overlay">
+    <h2 class="win">🏆 VICTOIRE</h2>
+    <p><strong id="win-name"></strong> remporte la manche !</p>
+    <div class="overlay-actions">
+      <button class="btn btn-primary" id="btn-back-lobby">↩ Lobby</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toasts -->
+<div id="toast-container"></div>
+
+<script type="module" src="/js/main.js"></script>
+</body>
+</html>
